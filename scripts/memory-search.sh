@@ -12,6 +12,7 @@ PROJECT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 MEMORY_DIR="$PROJECT_DIR/memory"
 VAULT_DIR="$PROJECT_DIR/vault"
 RULES_DIR="$PROJECT_DIR/.claude/rules"
+BRAIN_DIR="$PROJECT_DIR/brain"  # canary's expertise corpus — the Memory component searches this (canary brain <query>)
 
 # Parse arguments
 QUERY=""
@@ -31,7 +32,12 @@ while [[ $# -gt 0 ]]; do
     --help|-h)
       echo "Usage: memory-search.sh \"query\" [--limit N] [--verbose]"
       echo ""
-      echo "Searches across Energy's memory system:"
+      echo "BM25-style ranked search over canary's expertise + memory."
+      echo "Surfaces the matching section heading (the S-/§-/A- ID) per hit."
+      echo "This is the search layer behind 'canary brain <query>'."
+      echo ""
+      echo "Searches:"
+      echo "  - brain/*.md (the six Wave-R expertise artifacts — canonical, weight 5)"
       echo "  - memory/LEARNINGS.md (learnings & patterns)"
       echo "  - memory/daily/*.md (session logs)"
       echo "  - memory/topics/*.md (permanent topic files)"
@@ -67,6 +73,7 @@ trap "rm -f $RESULTS_FILE" EXIT
 weight_for_source() {
   local file="$1"
   case "$file" in
+    */brain/*)           echo 5 ;;  # The canary expertise brain — canonical (Memory component indexes brain/, not code history)
     */.claude/rules/*)   echo 5 ;;  # Rules are highest priority
     */memory/LEARNINGS*) echo 4 ;;  # Learnings are core knowledge
     */memory/topics/*)   echo 4 ;;  # Topic files are curated
@@ -128,10 +135,35 @@ score_file() {
   echo "$total_hits"
 }
 
+# Find the heading line (markdown `#`-prefixed) that best matches the query — surfaces the
+# section ID (e.g. `## S5 …`, `### A4. …`, `## §1b …`) so a ranked hit names its scenario/opinion/
+# pitfall, not just the file. Scans ALL query terms across every heading.
+best_heading() {
+  local file="$1"
+  local best_line="" best_score=0
+  while IFS= read -r line_data; do
+    local line_content="${line_data#*:}"
+    local line_score=0
+    for term in "${TERMS[@]}"; do
+      echo "$line_content" | grep -qi "$term" 2>/dev/null && line_score=$((line_score + 1))
+    done
+    if [ "$line_score" -gt "$best_score" ]; then
+      best_score=$line_score
+      best_line="$line_content"
+    fi
+  done < <(grep -nE '^#{1,6} ' "$file" 2>/dev/null)
+  [ "$best_score" -gt 0 ] && echo "$best_line"
+}
+
 # Extract context around the best match in a file
 extract_context() {
   local file="$1"
   local context_lines=2
+
+  # First surface the best-matching section heading (carries the S-/§-/A- ID)
+  local heading
+  heading="$(best_heading "$file")"
+  [ -n "$heading" ] && echo "$heading"
 
   # Find the line with the most query terms
   local best_line=0
@@ -164,6 +196,11 @@ extract_context() {
 
 # Build file list to search
 FILES=()
+
+# The canary expertise brain (the six Wave-R artifacts) — canonical for `canary brain <query>`
+for f in "$BRAIN_DIR"/*.md; do
+  [ -f "$f" ] && FILES+=("$f")
+done
 
 # LEARNINGS.md
 [ -f "$MEMORY_DIR/LEARNINGS.md" ] && FILES+=("$MEMORY_DIR/LEARNINGS.md")
