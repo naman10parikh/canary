@@ -1,0 +1,52 @@
+{
+  "name": "canary",
+  "version": "0.1.0",
+  "description": "The early warning that's actually actionable — instrument once, page on symptoms, prove the page delivers. Powered by Energy.",
+  "type": "module",
+  "bin": {
+    "canary": "./dist/cli/index.js"
+  },
+  "main": "./dist/cli/index.js",
+  "types": "./dist/cli/index.d.ts",
+  "files": [
+    "dist/",
+    "brain/",
+    "skills/",
+    "README.md",
+    "AGENTS.md",
+    "llms.txt"
+  ],
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "dev": "tsc -p tsconfig.json --watch",
+    "canary": "node ./dist/cli/index.js",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "prepublishOnly": "pnpm build && pnpm test"
+  },
+  "keywords": [
+    "observability",
+    "opentelemetry",
+    "sre",
+    "sentry",
+    "prometheus",
+    "slo",
+    "burn-rate",
+    "alerting",
+    "claude",
+    "agent",
+    "energy"
+  ],
+  "license": "MIT",
+  "engines": {
+    "node": ">=22"
+  },
+  "dependencies": {
+    "commander": "^14.0.2"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.0",
+    "typescript": "^5.7.2",
+    "vitest": "^3.2.4"
+  }
+}

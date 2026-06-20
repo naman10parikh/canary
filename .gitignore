@@ -2,6 +2,16 @@
 .wikimem-cache/
 node_modules/
 
+# canary CLI build artifacts (CP123 Wave B — never commit; built via `pnpm build`)
+dist/
+*.tsbuildinfo
+# canary local OTLP span sink + scaffolded SLO rules (command outputs, not source)
+.otel-out/
+.slo/
+# generated OTel/Sentry wiring canary writes INTO a target service (not canary's own source)
+canary-otel.mjs
+canary-sentry.config.mjs
+
 # WikiMem test vault personal data
 my-wiki/raw/
 tools/agentgrid/app/release/
