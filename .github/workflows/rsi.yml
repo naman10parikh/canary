@@ -1,20 +1,54 @@
 name: canary RSI
-# CP123: dispatch-only until the RSI engine (workflows/rsi.workflow.js + eval gate) is built in Wave B/E.
-# The Claude half additionally needs CLAUDE_CODE_OAUTH_TOKEN (chairman checklist, D8). Guarded = always green.
+# D18 (CP123 Wave B): ENABLED workflow_dispatch (+ a weekly schedule) running (a) the
+# deterministic $0/tokenless RSI loop (workflows/rsi.workflow.js) AND (b) the dogfood cron
+# check-in (canary's own HEARTBEAT — a missed run is itself an incident, S18 / OPINIONS D5).
+# This is the dogfood: the observability employee that preaches "wire a dead-man's-switch on
+# every scheduled job" wires one on ITS OWN scheduled job. ENABLED, not just written (the #1
+# fleet-gap lesson — CP117 burned on "written != enabled").
+#
+# The Claude half stays dark (D8): it is gated behind CLAUDE_CODE_OAUTH_TOKEN inside
+# rsi.workflow.js (absent -> no-op). The deterministic half runs at $0 here.
 on:
   workflow_dispatch:
+  schedule:
+    # Weekly, Friday 09:00 UTC — re-verify the tool matrix + run the death-watch.
+    - cron: "0 9 * * 5"
 
 permissions:
   contents: read
 
 jobs:
   rsi:
+    name: deterministic RSI loop + dogfood check-in
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Engine guard
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install + build (the loop runs canary eval against dist/)
         run: |
-          if [ ! -f workflows/rsi.workflow.js ]; then
-            echo "RSI engine not built yet (CP123 cluster E) — exiting green."; exit 0
-          fi
-          echo "engine present — deterministic half would run here (wired in cluster E)"
+          pnpm install --frozen-lockfile || pnpm install
+          pnpm build
+
+      - name: RSI deterministic loop (6 steps + death-watch, $0)
+        run: |
+          # Runs refresh-brain -> re-verify+death-watch -> run-eval-pyramid -> propose ->
+          # test-gate -> commit (proposes; never auto-commits). Detects stale pins + dead/
+          # archived tools. Exit non-zero only if a step fails (red-blocks the dispatch).
+          node workflows/rsi.workflow.js --deterministic
+
+      - name: Dogfood cron check-in (S18 dead-man's-switch — a missed run is an incident)
+        run: |
+          # canary's own HEARTBEAT: emit a check-in proving the scheduled loop actually ran.
+          # The CLASS this guards (S18 / KNOWN-PITFALLS §1c): a cron that SILENTLY STOPS fires
+          # no error, no log, no metric — only the ABSENCE of an expected event. So we emit a
+          # positive check-in here; a real deployment wires this to a Sentry Cron / Better Stack
+          # heartbeat URL (CANARY_HEARTBEAT_URL) that pages when this check-in is MISSED.
+          node scripts/dogfood-checkin.mjs

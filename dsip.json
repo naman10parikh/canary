@@ -2,16 +2,38 @@
   "dsip": "0.1",
   "product": "canary",
   "levels": ["agent"],
+  "selection": "eval-gated",
+  "noSelfGrading": true,
+  "snapback": ["component", "repo"],
   "loop": {
     "cadence": "nightly",
-    "steps": ["refresh-brain", "re-verify-tool-matrix", "run-eval-pyramid", "propose", "validate", "ship"]
+    "engine": "workflows/rsi.workflow.js --deterministic",
+    "steps": [
+      "refresh-brain",
+      "re-verify-tool-matrix + death-watch",
+      "run-eval-pyramid",
+      "propose",
+      "test-gate",
+      "commit"
+    ]
   },
-  "selection": "performance",
   "eval": {
-    "rubric": "eval/ (Hamel L1 assertions + L2 behavior + L3 trajectory; golden tasks from brain/BATTLE-TESTED-SCENARIOS.md)",
+    "rubric": "eval/ (Hamel L1 assertions + L2 behavior + L3 trajectory; golden tasks G1-G14 from brain/BATTLE-TESTED-SCENARIOS.md, mapped to S-IDs)",
     "gate": "acceptance-test-green && no-regression",
-    "noSelfGrading": true
+    "ciBlockingSet": ["G1", "G2", "G3", "G4", "G6", "G7"],
+    "passK": 3
   },
-  "snapback": { "granularity": ["skill", "employee"], "vcs": "git" },
-  "externalIntelligence": { "enabled": true, "source": "vertical ecosystem watch (changelogs, issues, X) per brain/TOOL-MATRIX.md" }
+  "deathWatch": {
+    "enabled": true,
+    "rationale": "this vertical's tools DIE (Opsgenie shutdown Apr 2027, OnCall OSS archived 2026-03-24, Prometheus v3.11 EOL 2026-05-14, semconv gen_ai.* repo-split 2026-06-12) — re-verify EOL/archived/shut-down status every loop, not just version bumps."
+  },
+  "externalIntelligence": {
+    "enabled": true,
+    "source": "vertical ecosystem watch (changelogs, issues, X, npm view / gh api) per brain/TOOL-MATRIX.md"
+  },
+  "claudeHalf": {
+    "deferred": true,
+    "gatedBehind": "CLAUDE_CODE_OAUTH_TOKEN",
+    "note": "D8 — the deterministic half ships armed at $0; the Claude half lights when CLAUDE_CODE_OAUTH_TOKEN is set per repo (CHAIRMAN-CHECKLIST item with exact commands)."
+  }
 }

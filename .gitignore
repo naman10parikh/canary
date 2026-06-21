@@ -8,6 +8,8 @@ dist/
 # canary local OTLP span sink + scaffolded SLO rules (command outputs, not source)
 .otel-out/
 .slo/
+# canary RSI deterministic-loop proposal output (a command output, not source)
+.rsi/
 # generated OTel/Sentry wiring canary writes INTO a target service (not canary's own source)
 canary-otel.mjs
 canary-sentry.config.mjs
