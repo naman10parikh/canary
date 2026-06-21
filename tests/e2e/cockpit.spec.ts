@@ -39,11 +39,13 @@ test.describe("canary cockpit (read-mostly, warm-black)", () => {
 
   test("brain browser returns a query → S5 (the page never delivered), click reads the scenario", async ({ page }) => {
     await page.goto("/");
+    test.setTimeout(180_000); // this test's BM25 search dominates — give the whole test a wide budget
     await page.fill("#brain-q", "page never delivered");
     await page.click("#brain-go");
-    // The BM25 CLI is slow (~15s) — the generous expect timeout covers it.
+    // The BM25 CLI (scripts/memory-search.sh over the full corpus) measures 12-80s and the server now
+    // allows up to 120s for it — give the hit a 130s window so a cold/slow corpus still completes.
     const hits = page.locator("#brain-hits .hit");
-    await expect(hits.first()).toBeVisible({ timeout: 30_000 });
+    await expect(hits.first()).toBeVisible({ timeout: 130_000 });
     // The top hit is S5 (the differentiator scenario).
     await expect(hits.first().locator(".id")).toHaveText("S5");
     await page.screenshot({ path: shot("02-brain-search.png"), fullPage: true });

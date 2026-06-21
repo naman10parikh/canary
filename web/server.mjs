@@ -68,16 +68,28 @@ class ApiError extends Error {
 
 // ------------------------------------------------------------------- helpers ---
 
-/** Run the canary CLI with the given argv (array — never a shell string). Returns parsed JSON. */
-function runCanaryJson(args) {
+/**
+ * Run the canary CLI with the given argv (array — never a shell string). Returns parsed JSON.
+ * `timeoutMs` defaults to 30s (plenty for instrument/slo/explain) — pass a larger value for the
+ * BM25 brain search (`scripts/memory-search.sh` over the full corpus measures 12-80s, so 20s was a
+ * real bug: the server killed legitimate searches mid-flight).
+ */
+function runCanaryJson(args, timeoutMs = 30_000) {
   if (!existsSync(CLI)) {
     throw new ApiError(502, `canary CLI not built — run \`pnpm build\` (looked for ${CLI})`);
   }
   const res = spawnSync(process.execPath, [CLI, ...args, "--json"], {
     cwd: REPO,
     encoding: "utf8",
-    timeout: 20_000,
+    timeout: timeoutMs,
   });
+  // A spawn timeout surfaces as ETIMEDOUT (or a SIGTERM signal) — report it honestly, don't pretend.
+  if (res.error && res.error.code === "ETIMEDOUT") {
+    throw new ApiError(504, `canary CLI timed out after ${timeoutMs}ms: ${args.join(" ")}`);
+  }
+  if (res.signal === "SIGTERM") {
+    throw new ApiError(504, `canary CLI was killed (timeout ${timeoutMs}ms): ${args.join(" ")}`);
+  }
   if (res.error) throw new ApiError(502, `canary CLI failed: ${res.error.message}`);
   // The CLI exits 0 even for the "no channels" delivery case; only treat a non-parseable
   // stdout as a failure. Some commands log pino lines to stdout, so take the LAST JSON line.
@@ -171,8 +183,9 @@ function apiBrain(query) {
   const q = (query ?? "").trim();
   if (!q) throw new ApiError(400, "missing query (?q=)");
   if (q.length > 200) throw new ApiError(400, "query too long");
-  // argv array — the query never touches a shell.
-  return runCanaryJson(["brain", q]);
+  // argv array — the query never touches a shell. The BM25 search is slow (12-80s over the full
+  // corpus), so allow a 120s window — the default 30s would kill legitimate searches.
+  return runCanaryJson(["brain", q], 120_000);
 }
 
 function apiExplain(id) {

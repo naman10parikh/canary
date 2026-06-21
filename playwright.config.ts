@@ -20,10 +20,10 @@ export default defineConfig({
   globalSetup: "./tests/e2e/global-setup.mjs",
   fullyParallel: false, // one shared cockpit server
   forbidOnly: !!process.env.CI,
-  retries: process.env.CI ? 1 : 0,
+  retries: 1, // one retry everywhere — absorbs a transient BM25-search latency spike without masking a real fail
   workers: 1,
   reporter: [["list"]],
-  timeout: 90_000, // the brain-search view shells the BM25 CLI (~15s) — generous on purpose
+  timeout: 150_000, // the brain-search view shells the BM25 CLI (scripts/memory-search.sh) which can spike to 30s+
   expect: { timeout: 20_000 },
   use: {
     baseURL: `http://localhost:${PORT}`,
