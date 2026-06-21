@@ -1,0 +1,112 @@
+name: acceptance
+# E23 (CP123 Wave B) — THE acceptance test in CI, red-blocking (PLAN §5 + HARNESS-OVERRIDES
+# "Acceptance test"). The merge gate exercises canary's core capability LOCALLY ($0, no creds,
+# D15/Q0): instrument the sample service → boot it → a thrown error is captured as a span
+# `exception` event + `error.type` in a local OTLP file sink → an MWMBR SLO is scaffolded +
+# `promtool`-valid → canary's own instrumentation passes canary's own audit. The eval pyramid
+# (L1 structural + L2 behavioral, the CI-blocking golden set G1/G2/G3/G4/G6/G7) runs too.
+#
+# The E2B sandbox-boot step + the Sentry-symbolication step are ADDITIVE and gate behind
+# secrets (E2B_API_KEY / SENTRY_DSN); absent → the LOCAL-OTLP path STILL gates the merge (the
+# merge gate does not depend on any provider — D15/Q0). pnpm-native (the repo is pnpm-only).
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  accept:
+    name: acceptance (local-OTLP merge gate)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+
+      - name: Install + build
+        run: |
+          pnpm install --frozen-lockfile || pnpm install
+          pnpm build
+
+      - name: Install promtool (Prometheus) for SLO rule validation
+        run: |
+          set -euo pipefail
+          PROM_VERSION=3.12.0
+          curl -sSL -o /tmp/prom.tar.gz \
+            "https://github.com/prometheus/prometheus/releases/download/v${PROM_VERSION}/prometheus-${PROM_VERSION}.linux-amd64.tar.gz"
+          tar -xzf /tmp/prom.tar.gz -C /tmp
+          sudo install "/tmp/prometheus-${PROM_VERSION}.linux-amd64/promtool" /usr/local/bin/promtool
+          promtool --version
+
+      # ── THE acceptance test (PLAN §5), local-OTLP path — the merge gate ──────────────────
+      - name: instrument the sample service (writes canary-otel.mjs)
+        run: node dist/cli/index.js instrument eval/fixtures/sample-service --otlp file://./.otel-out --json
+
+      - name: boot → throw → assert span exception + error.type captured locally
+        run: node eval/boot-and-throw.mjs
+
+      - name: scaffold the MWMBR SLO ruleset
+        run: node dist/cli/index.js slo --service sample --target 99.9 --out ./.slo --json
+
+      - name: promtool check rules (MWMBR valid, SLI-as-ratio)
+        run: promtool check rules ./.slo/*.yml
+
+      - name: canary's own instrumentation passes canary's own audit (zero critical)
+        run: node dist/cli/index.js audit eval/fixtures/sample-service --json | node eval/assert-no-critical-footguns.mjs
+
+      - name: broken-service audit MUST report critical footguns (the negative gate)
+        run: |
+          if node dist/cli/index.js audit eval/fixtures/broken-service --json | node eval/assert-no-critical-footguns.mjs; then
+            echo "::error::broken-service audit reported ZERO critical footguns — the audit is not catching planted pitfalls"; exit 1
+          else
+            echo "broken-service correctly flagged (audit exits non-zero on planted footguns)"
+          fi
+
+      # ── The eval pyramid (L1 structural + L2 behavioral, pass^k) — CI-blocking golden set ──
+      - name: eval pyramid (L1 + L2, pass^k) — G1/G2/G3/G4/G6/G7
+        run: node dist/cli/index.js eval
+
+      # ── Unit/integration suite (red-blocking) ────────────────────────────────────────────
+      - name: unit + integration tests
+        run: pnpm test
+
+  sandbox-e2b:
+    name: E2B sandbox-boot (additive, secret-gated — NOT the merge blocker)
+    runs-on: ubuntu-latest
+    # Only runs when E2B_API_KEY is configured; its absence does NOT block the merge (D15/Q0).
+    if: ${{ github.event_name == 'push' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: pnpm
+      - name: Install + build
+        run: |
+          pnpm install --frozen-lockfile || pnpm install
+          pnpm build
+      - name: E2B sandbox boot + instrument + throw + capture (live Firecracker)
+        # The script exits 2 (🟡) if E2B_API_KEY is absent/unreachable — treated as a non-blocking
+        # skip here (continue-on-error) so a missing key never red-blocks. A real span-capture
+        # failure is exit 1 (a true failure) — still surfaced in the job log.
+        continue-on-error: true
+        env:
+          E2B_API_KEY: ${{ secrets.E2B_API_KEY }}
+        run: |
+          if [ -z "${E2B_API_KEY:-}" ]; then
+            echo "E2B_API_KEY not configured — sandbox-boot skipped (🟡). Local-OTLP acceptance gates the merge."
+            exit 0
+          fi
+          node eval/sandbox/boot-e2b.mjs
