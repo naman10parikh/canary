@@ -1,0 +1,57 @@
+{
+  "schemaVersion": "0.1",
+  "name": "canary",
+  "description": "The app-health / errors / uptime / observability employee — instrument once on OpenTelemetry, page on symptoms, scaffold MWMBR SLO burn-rate alerts, audit version-specific footguns, and prove the page actually delivers. App health only — LLM token spend is agentmoney's. Powered by Energy.",
+  "version": "0.1.0",
+  "provider": { "organization": "Energy", "url": "https://github.com/naman10parikh/canary" },
+  "endpoint": "stdio://canary-mcp",
+  "transport": "stdio",
+  "documentationUrl": "https://github.com/naman10parikh/canary/blob/main/AGENTS.md",
+  "capabilities": [
+    "instrument",
+    "slo",
+    "audit",
+    "check-delivery",
+    "cardinality",
+    "brain",
+    "explain"
+  ],
+  "plannedCapabilities": [
+    "release-health",
+    "uptime"
+  ],
+  "skills": [
+    {
+      "id": "instrument-with-otel",
+      "name": "Instrument with OpenTelemetry",
+      "description": "Wire OTel into a service ONCE so a thrown error surfaces as a span exception event + error.type and latency as a histogram — one stream feeds errors + rates + SLO. Reads latency/exception attrs off a GenAI span; stops at gen_ai.usage.* (agentmoney's seam).",
+      "tags": ["observability", "opentelemetry", "tracing", "instrumentation"]
+    },
+    {
+      "id": "slo-burn-rate-alerting",
+      "name": "SLO burn-rate alerting (MWMBR)",
+      "description": "Scaffold a promtool-valid MWMBR SLO ruleset (14.4x page / 6x page / 1x ticket) via Sloth, with the SLI as a ratio (good/total) and a volume floor — page vs ticket vs freeze from the error-budget burn.",
+      "tags": ["slo", "burn-rate", "prometheus", "alerting"]
+    },
+    {
+      "id": "test-alert-delivery",
+      "name": "Test the alert delivery path",
+      "description": "Fire a synthetic page through each configured channel, confirm receipt, and fail loudly if a channel is dead — re-surfacing via a different channel within one cycle. canary's single strongest differentiator.",
+      "tags": ["on-call", "delivery", "heartbeat", "pagerduty"]
+    },
+    {
+      "id": "audit-observability",
+      "name": "Audit observability config footguns",
+      "description": "Detect the version-specific footguns: missing source-map Debug IDs, tracesSampleRate:1.0 in prod, the ad-blocker tunnel gap, the v9 autoSessionTracking trap, rate-without-floor, averaged percentiles, unbounded cardinality, send_resolved off, EOL Prometheus — keyed by section ID.",
+      "tags": ["audit", "footguns", "sentry", "prometheus"]
+    },
+    {
+      "id": "explain",
+      "name": "Ask the observability employee",
+      "description": "Diagnose an app-health symptom by ID — scenario (S1-S18) / pitfall (section IDs) / opinion (A/B/C/D) — with detection + fix + source, cited to the brain.",
+      "tags": ["diagnosis", "sre", "observability"]
+    }
+  ],
+  "defaultInputModes": ["text"],
+  "defaultOutputModes": ["text"]
+}

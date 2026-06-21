@@ -1,0 +1,32 @@
+{
+  "schema_version": "1.0",
+  "name": "canary",
+  "display_name": "canary — App-Health / Observability Employee",
+  "description": "The app-health / errors / uptime / observability employee — the early warning that's actually actionable: instrument once on OpenTelemetry, page on symptoms, scaffold MWMBR SLO burn-rate alerts, audit the version-specific footguns, and prove the page actually delivers. App health only — LLM token spend is agentmoney's. Powered by Energy.",
+  "version": "0.1.0",
+  "author": "Energy Platform",
+  "license": "MIT",
+  "repository": "https://github.com/naman10parikh/canary",
+  "cli": { "command": "canary", "bin": "./dist/cli/index.js" },
+  "mcpServers": {
+    "canary": { "command": "node", "args": ["./dist/mcp/server.js"], "env": {} }
+  },
+  "skills": [
+    "instrument-with-otel",
+    "slo-burn-rate-alerting",
+    "test-alert-delivery",
+    "fix-source-maps",
+    "tame-cardinality-and-percentiles"
+  ],
+  "hooks": {
+    "PreToolUse": [
+      { "matcher": "Bash", "command": "node \"$CLAUDE_PROJECT_DIR/.claude/hooks/canary-footgun-gate.js\"" }
+    ]
+  },
+  "agents": [
+    ".claude/agents/observability-auditor.md",
+    ".claude/agents/alerting-reviewer.md"
+  ],
+  "a2a": "./.well-known/agent.json",
+  "install_instructions": "1. Install deps and build: pnpm install && pnpm build\n2. Add this plugin to Claude Code: Settings → Plugins → Add local plugin → select this directory.\n3. The canary CLI, the canary MCP server (instrument_service / scaffold_slo / audit_observability / check_delivery / detect_cardinality / explain_pitfall / search_brain), the 5 skills, the footgun-gate hook, and the observability-auditor + alerting-reviewer sub-agents are now available."
+}
