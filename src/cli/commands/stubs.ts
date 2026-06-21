@@ -6,7 +6,8 @@
  *
  *   - release-health : Cluster-D/E surface (S7) — crash-free-users × adoption rollback call.
  *   - uptime         : Checkly monitoring-as-code (J2).
- *   - eval           : the eval pyramid runner (E19) — wired when eval/ lands.
+ *
+ * (`eval` is now REAL — see commands/eval.ts, E19 — and is no longer a planned stub.)
  */
 
 import { Command } from "commander";
@@ -34,12 +35,6 @@ const PLANNED: PlannedStub[] = [
     willDo:
       "Scaffold an ApiCheck/BrowserCheck (@playwright/test spec) for --url and `npx checkly test` it.",
   },
-  {
-    name: "eval",
-    description: "[planned] Run the eval pyramid (L1/L2/L3) over the golden tasks (E19).",
-    willDo:
-      "Run eval/ (L1 structural assertions + L2 binary behavioral gates + L3 trajectory), the scenario VERIFY lines as the objective gate (no self-grading).",
-  },
 ];
 
 export function registerPlannedStubs(program: Command): void {
@@ -52,8 +47,6 @@ export function registerPlannedStubs(program: Command): void {
     } else if (stub.name === "uptime") {
       cmd.option("--url <u>", "the URL to monitor");
       cmd.option("--flow <spec.ts>", "an optional Playwright flow spec");
-    } else {
-      cmd.option("--level <1|2|3>", "which eval level to run");
     }
     cmd.action(async () => {
       await runCommand(stub.name, () => {

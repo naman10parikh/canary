@@ -88,6 +88,15 @@ export function renderBootstrap(target: OtlpTarget, serviceName: string): string
 //     carrying exception.type/.message/.stacktrace + the error.type attribute
 //   - deployment.environment.name (NOT the renamed-away deployment.environment) — semconv §9.2
 //   - canary NEVER touches gen_ai.usage.* (token cost is agentmoney's seam) — JOB 0
+//
+// ESM hook (load-bearing for ESM services): OTel auto-instrumentation patches core modules
+// (node:http) via an import hook. For an ESM entrypoint (an .mjs / "type":"module" app), that
+// hook MUST be register()'d BEFORE the app binds node:http — otherwise spans are silently never
+// produced. This register() runs first; it is a no-op cost for CJS apps. Requires
+// '@opentelemetry/instrumentation' to be resolvable in the service (a peer of the SDK packages).
+import { register } from 'node:module';
+register('@opentelemetry/instrumentation/hook.mjs', import.meta.url);
+
 import { NodeSDK } from '@opentelemetry/sdk-node';
 import { getNodeAutoInstrumentations } from '@opentelemetry/auto-instrumentations-node';
 import { resourceFromAttributes } from '@opentelemetry/resources';

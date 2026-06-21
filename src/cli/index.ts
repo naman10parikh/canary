@@ -23,6 +23,7 @@ import { registerCheckDelivery } from "./commands/check-delivery.js";
 import { registerCardinality } from "./commands/cardinality.js";
 import { registerBrain } from "./commands/brain.js";
 import { registerExplain } from "./commands/explain.js";
+import { registerEval } from "./commands/eval.js";
 import { registerPlannedStubs } from "./commands/stubs.js";
 
 /** Resolve the version from package.json (dist/cli/index.js → ../../package.json). */
@@ -54,6 +55,7 @@ function buildProgram(): Command {
   registerCardinality(program);
   registerBrain(program);
   registerExplain(program);
+  registerEval(program);
 
   // Planned capabilities (full tree in --help; honest non-zero stubs).
   registerPlannedStubs(program);

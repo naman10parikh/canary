@@ -1,0 +1,13 @@
+# SEEDED FOOTGUN (do NOT fix): §2.1 — a percentage-threshold alert with NO volume floor.
+# `failure_rate > 5%` is a lie at low volume (1 error in 3 requests = 33% = a 3 AM page for
+# nothing). canary's §2.1 detector flags the missing `AND count(...) > N` floor (OPINIONS A5).
+groups:
+  - name: broken_service_alerts
+    rules:
+      - alert: HighFailureRate
+        expr: failure_rate > 0.05
+        for: 1m
+        labels:
+          severity: page
+        annotations:
+          summary: "failure rate above 5% (NO volume floor — fires at 1-error-in-3 overnight)"

@@ -1,0 +1,12 @@
+{
+  "name": "broken-service",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Audit-test fixture: a service seeded with footguns canary's audit must flag (PLAN §12.20).",
+  "main": "server.mjs",
+  "dependencies": {
+    "@sentry/react": "^9.0.0",
+    "prom-client": "^15.1.3"
+  }
+}

@@ -11,6 +11,7 @@ import { Command } from "commander";
 import { instrumentService, type InstrumentResult } from "../../instrument/otel.js";
 import { emitResult, runCommand, type OutputOptions } from "../../lib/cli-result.js";
 import { logger } from "../../lib/logger.js";
+import { withRunLog } from "../../observability/run-logger.js";
 
 interface InstrumentFlags extends OutputOptions {
   otlp?: string;
@@ -50,11 +51,14 @@ export function registerInstrument(program: Command): void {
       await runCommand("instrument", async () => {
         const log = logger.child({ cmd: "instrument", dir });
         log.info("instrumenting service", { otlp: flags.otlp, sentry: Boolean(flags.sentry) });
-        const result = await instrumentService({
-          dir,
-          otlp: flags.otlp,
-          sentry: flags.sentry,
-        });
+        // Dogfood (OPINIONS D5): wrap the run so it appends a Majors-shaped wide event to
+        // logs/runs.jsonl with a real trace.id + a measured durationMs (the Observability
+        // component's layer-(a), E21). toolCalls = the count of files canary wired.
+        const result = await withRunLog(
+          "instrument",
+          () => instrumentService({ dir, otlp: flags.otlp, sentry: flags.sentry }),
+          (r) => ({ toolCalls: r.wired.length, summary: { wired: r.wired, exporter: r.exporter.kind } }),
+        );
         log.info("instrument complete", { wired: result.wired });
         emitResult(result, flags, renderHuman);
       });

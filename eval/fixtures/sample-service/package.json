@@ -1,0 +1,11 @@
+{
+  "name": "sample-service",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Acceptance-test fixture: a real node:http service canary instruments (PLAN §5).",
+  "main": "server.mjs",
+  "scripts": {
+    "start": "node --import ./canary-otel.mjs server.mjs"
+  }
+}
