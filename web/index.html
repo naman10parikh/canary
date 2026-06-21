@@ -1,0 +1,124 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>canary cockpit — app health · errors · uptime · SLO</title>
+    <!-- Instrument Serif (display) + Poppins (body) — the anti-AI-slop serif+sans pairing -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Poppins:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+    <!-- warm-black token inlined so the served HTML carries #141312 even before CSS loads
+         (canary's brand is intentionally warm-black, NEVER AI-purple) -->
+    <style>
+      html {
+        background: #141312;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="app">
+      <header class="masthead">
+        <div class="brand">
+          <span class="logo">canary</span>
+          <span class="tagline"
+            >The early warning that's actually actionable — instrument once, page on symptoms, prove the page
+            delivers.</span
+          >
+        </div>
+        <span class="boundary">app health only · token cost → agentmoney</span>
+      </header>
+
+      <nav class="tabs" role="tablist" aria-label="cockpit views">
+        <button role="tab" data-view="brain" aria-selected="true">Brain browser</button>
+        <button role="tab" data-view="runs" aria-selected="false">Run log</button>
+        <button role="tab" data-view="slo" aria-selected="false">SLO &amp; alerts</button>
+        <button role="tab" data-view="delivery" aria-selected="false">Delivery health</button>
+        <button role="tab" data-view="ask" aria-selected="false">Ask the employee</button>
+      </nav>
+
+      <!-- VIEW 1: Brain browser -->
+      <section class="view active" id="view-brain" role="tabpanel">
+        <h2>Brain browser</h2>
+        <p class="sub">
+          The six brain artifacts, rendered + BM25-searchable. Search a symptom, then click a hit
+          (S-/§-/A-ID) to read symptom → diagnosis → resolution → verify. The expertise made legible.
+        </p>
+        <div class="searchbar">
+          <input id="brain-q" type="search" placeholder="e.g. page never delivered, averaging percentiles, cardinality bomb" />
+          <button id="brain-go">Search</button>
+        </div>
+        <div class="bento-brain">
+          <div class="card">
+            <div style="font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-faint); margin-bottom: 8px">
+              Artifacts
+            </div>
+            <div class="artifact-list" id="artifact-list"></div>
+          </div>
+          <div>
+            <div id="brain-hits"></div>
+            <div class="reader" id="brain-reader"><span class="empty">Search above or pick an artifact to read.</span></div>
+          </div>
+        </div>
+      </section>
+
+      <!-- VIEW 2: Run log -->
+      <section class="view" id="view-runs" role="tabpanel">
+        <h2>Run log</h2>
+        <p class="sub">
+          <code>logs/runs.jsonl</code> tail — every <code>canary</code> run as a wide event: command, model,
+          measured duration, trace.id, outcome. The dogfooded trail canary preaches (OPINIONS D5/C1 — a trace,
+          not just a log).
+        </p>
+        <div class="card" id="runs-wrap"><span class="loading">Loading run log…</span></div>
+      </section>
+
+      <!-- VIEW 3: SLO & alerts -->
+      <section class="view" id="view-slo" role="tabpanel">
+        <h2>SLO &amp; alerts</h2>
+        <p class="sub">
+          The scaffolded multi-window multi-burn-rate (MWMBR) rules — 14.4× / 6× / 1× tiers, SLI as a ratio
+          (never a raw quantile, the S6 footgun guard). <code>promtool</code>-validated offline.
+        </p>
+        <div id="slo-wrap"><span class="loading">Scaffolding a sample SLO…</span></div>
+      </section>
+
+      <!-- VIEW 4: Delivery health (the differentiator) -->
+      <section class="view" id="view-delivery" role="tabpanel">
+        <h2>Delivery health</h2>
+        <p class="sub">
+          Per-channel heartbeat — last synthetic page, delivered?, latency, dead channels in red. The thing no
+          competitor's dashboard shows: <em>can the page even be delivered.</em> (S5 / OPINIONS A4 — a firing
+          rule ≠ a delivered page.)
+        </p>
+        <div id="delivery-wrap"><span class="loading">Firing a synthetic page through each channel…</span></div>
+      </section>
+
+      <!-- VIEW 5: Ask the employee -->
+      <section class="view" id="view-ask" role="tabpanel">
+        <h2>Ask the employee</h2>
+        <p class="sub">
+          Runs <code>canary brain</code> / <code>canary explain</code> read-only. "What does canary think about
+          averaging percentiles?" → B5 + S9. Ask a scenario ID directly (e.g. <code>S5</code>) for the full
+          symptom→verify walk.
+        </p>
+        <div class="searchbar">
+          <input id="ask-q" type="search" placeholder="Ask a question, or type an ID like S5 / §1b.3 / A4" />
+          <button id="ask-go">Ask</button>
+        </div>
+        <div class="answer" id="ask-answer"></div>
+      </section>
+
+      <footer class="foot">
+        canary · read-mostly cockpit (does not instrument / audit / page from the browser, PLAN Q6) · warm-black
+        #141312 · Powered by Energy
+      </footer>
+    </div>
+
+    <script src="/app.js"></script>
+  </body>
+</html>
