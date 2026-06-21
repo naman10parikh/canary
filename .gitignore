@@ -14,6 +14,14 @@ dist/
 canary-otel.mjs
 canary-sentry.config.mjs
 
+# Playwright cockpit E2E (G29) — generated artifacts. Screenshots are chairman-facing run output;
+# test-results/ + the HTML report are Playwright's. The .gitkeep keeps content/screenshots/ tracked.
+test-results/
+playwright-report/
+content/screenshots/*.png
+# runtime delivery-channel config (a chairman-provided secret-ish file, never committed)
+.canary/
+
 # WikiMem test vault personal data
 my-wiki/raw/
 tools/agentgrid/app/release/
