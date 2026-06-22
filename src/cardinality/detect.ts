@@ -151,9 +151,19 @@ export function detectCardinality(dir: string): CardinalityResult {
 
   const findings: CardinalityFinding[] = [];
   const seenLabels = new Set<string>();
+  // Dedupe near-identical hits on the SAME physical location: `user_id` and `userId`
+  // (→ "userid") on one line are the same offender written two ways — reporting both reads
+  // as a confusing duplicate to a user (T-user finding). Key on file+line+normalized-label
+  // (underscores stripped) and keep the FIRST match, which is the more canonical UNBOUNDED_LABELS
+  // entry (`user_id` precedes `userid` in the list).
+  const seenAt = new Set<string>();
+  const normLabel = (l: string) => l.toLowerCase().replace(/[_.]/g, "");
   for (const { rel, line, text } of iterLines(dir)) {
     for (const label of UNBOUNDED_LABELS) {
       if (lineFlagsLabel(text, label)) {
+        const dedupeKey = `${rel}:${line}:${normLabel(label)}`;
+        if (seenAt.has(dedupeKey)) continue;
+        seenAt.add(dedupeKey);
         findings.push({
           label,
           file: rel,

@@ -47,6 +47,10 @@ export function registerPlannedStubs(program: Command): void {
     } else if (stub.name === "uptime") {
       cmd.option("--url <u>", "the URL to monitor");
       cmd.option("--flow <spec.ts>", "an optional Playwright flow spec");
+      // Accept --json for contract parity with every other data command (release-health,
+      // instrument, slo, audit, ...). Without it a user passing --json hits a hard
+      // `unknown option` crash instead of the honest planned-capability message (T-user finding).
+      cmd.option("--json", "emit JSON");
     }
     cmd.action(async () => {
       await runCommand(stub.name, () => {

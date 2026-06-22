@@ -96,7 +96,16 @@ export function registerBrain(program: Command): void {
     .option("--json", "emit the ranked hits as a single JSON object")
     .action(async (queryParts: string[], flags: BrainFlags) => {
       await runCommand("brain", () => {
-        const query = queryParts.join(" ");
+        const query = queryParts.join(" ").trim();
+        // Guard the empty/whitespace query BEFORE shelling out — otherwise memory-search.sh
+        // dies on `TERMS[@]: unbound variable` and the user sees a cryptic EXTERNAL error
+        // instead of a clear, actionable one (T-user finding).
+        if (query.length === 0) {
+          throw new CanaryError(
+            "BAD_INPUT",
+            'provide a non-empty search query, e.g. `canary brain "page never delivered"`',
+          );
+        }
         const root = findBrainRoot();
         const script = brainSearchScript(root);
         const limit = String(Number(flags.limit ?? "5") || 5);

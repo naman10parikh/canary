@@ -123,7 +123,20 @@ async function main() {
 
   // Read the local span sink and assert the captured signals.
   if (!existsSync(sinkPath)) {
-    fail(`no span sink written at ${sinkPath} — instrumentation did not export any span`);
+    // Self-diagnose the most common cause: the service was instrumented with an http(s)
+    // OTLP exporter (e.g. PLAN §5's literal `--otlp http://localhost:4318`) instead of the
+    // local file sink this gate reads. Guide the user to the file:// form (T-user finding).
+    let hint = "";
+    try {
+      const wiring = readFileSync(bootstrap, "utf8");
+      if (/OTLPTraceExporter|https?:\/\//.test(wiring) && !/\.otel-out|file:\/\//.test(wiring)) {
+        hint =
+          " — the service was instrumented with an http(s) OTLP exporter, but this local gate reads a file sink. Re-run `canary instrument <dir> --otlp file://./.otel-out` (the $0/no-creds default), then this script.";
+      }
+    } catch {
+      // bootstrap unreadable — fall through to the generic message.
+    }
+    fail(`no span sink written at ${sinkPath} — instrumentation did not export any span${hint}`);
   }
   const records = readFileSync(sinkPath, "utf8")
     .split("\n")
