@@ -109,8 +109,13 @@ async function main() {
   let sbx;
   const coldStart = Date.now();
   try {
-    // 60s lifetime is plenty for a boot+throw+read; we kill it explicitly in finally.
-    sbx = await Sandbox.create({ timeoutMs: 60_000 });
+    // The sandbox LIFETIME must outlive the whole boot+install+throw+read on the critical path.
+    // The in-sandbox OTel npm install alone runs >60s (see step 2, timeoutMs:240_000), so a 60s
+    // lifetime auto-expires the microVM mid-install ("reached its end of life while the request
+    // was in flight"). `Sandbox.create({ timeoutMs })` sets the VM's total lifetime — distinct
+    // from the per-command timeoutMs/requestTimeoutMs — so give it 300s headroom. We still
+    // `sbx.kill()` in finally, so there is never a leaked microVM regardless of this ceiling.
+    sbx = await Sandbox.create({ timeoutMs: 300_000 });
   } catch (err) {
     // Network / quota / auth at runtime → 🟡 infra-unavailable (exit 2), not a span failure.
     fail(`Sandbox.create failed (E2B unreachable/quota/auth): ${err instanceof Error ? err.message : String(err)}`, 2);
