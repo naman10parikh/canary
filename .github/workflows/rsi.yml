@@ -71,6 +71,8 @@ jobs:
           GH_REPO: ${{ github.repository }}
         run: |
           [ -s .rsi/proposal.json ] || { echo "The proposal file is empty, so no issue."; exit 0; }
+          jq -e '.actions | length > 0' .rsi/proposal.json > /dev/null \
+            || { echo "The loop proposed nothing this run, so no issue."; exit 0; }
           gh label create proposal --color 2f5d8a --description "A change the self-improvement loop proposes for a person to review" --force
           {
             echo "Written by the scheduled self-improvement loop on $(date -u '+%Y-%m-%d %H:%M UTC'). It proposes; a person decides. The loop never merges."
