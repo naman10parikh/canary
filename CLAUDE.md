@@ -55,4 +55,4 @@ staged lines add a footgun canary preaches against, and lets every other command
 
 Act, don't ask. Self-improve every session. Test as a user (the acceptance test, not "it compiles").
 Inherited rules in `.claude/rules/` are glob-loaded every session — Karpathy surgical edits, Socratic
-gate before non-trivial changes. **Always Opus 4.8, max effort (budget is a no-op constraint, D14).**
+gate before non-trivial changes. **Always the latest flagship Opus, which is Claude Code's default (never write a model ID), max effort (budget is a no-op constraint, D14).**

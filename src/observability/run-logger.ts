@@ -49,14 +49,13 @@ export function newTraceId(): string {
 }
 
 /**
- * The model this run executes under. Per D14 the fleet is always Opus 4.8; we read the
- * ambient `ANTHROPIC_MODEL` (set by the budget-manager tier) and fall back to the locked
- * default so the field is never empty. This is a recorded fact, not a routing decision.
+ * The model this run executes under. We read the ambient `ANTHROPIC_MODEL` and fall back
+ * to "default", Claude Code's own model, so the field is never empty. This is a recorded fact, not a routing decision.
  */
 export function resolveRunModel(): string {
   const fromEnv = process.env.ANTHROPIC_MODEL;
   if (typeof fromEnv === "string" && fromEnv.trim().length > 0) return fromEnv.trim();
-  return "claude-opus-4-8[1m]";
+  return "default";
 }
 
 /** Resolve the absolute runs.jsonl path. Honors CANARY_RUNS_LOG for tests/CI isolation. */
