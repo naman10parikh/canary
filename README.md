@@ -83,7 +83,7 @@ You need Node.js 22 or later and pnpm.
 git clone https://github.com/naman10parikh/canary && cd canary
 pnpm install && pnpm build
 
-# Find the footguns planted in a broken sample service (exits 1 when it finds critical ones)
+# Find the footguns planted in a broken sample service (it reports 12 critical findings)
 node dist/cli/index.js audit eval/fixtures/broken-service
 
 # Write SLO burn-rate alert rules for a 99.9% target (checked with promtool when it is installed)
