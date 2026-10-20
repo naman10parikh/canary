@@ -1,0 +1,12 @@
+cff-version: 1.2.0
+message: If you use this software, please cite it as below.
+title: "Canary: Error and uptime monitoring on OpenTelemetry, with burn-rate alerts and proof the page gets delivered."
+type: software
+authors:
+  - family-names: Parikh
+    given-names: Naman
+repository-code: "https://github.com/naman10parikh/canary"
+license: MIT
+version: "0.1.0"
+abstract: "Error and uptime monitoring on OpenTelemetry, with burn-rate alerts and proof the page gets delivered."
+keywords: ["agent-native", "observability", "opentelemetry", "sre"]
