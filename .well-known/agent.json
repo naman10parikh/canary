@@ -2,6 +2,7 @@
   "schemaVersion": "0.1",
   "name": "canary",
   "description": "The app-health / errors / uptime / observability employee — instrument once on OpenTelemetry, page on symptoms, scaffold MWMBR SLO burn-rate alerts, audit version-specific footguns, and prove the page actually delivers. App health only — LLM token spend is agentmoney's. Powered by Energy.",
+  "url": "https://github.com/naman10parikh/canary",
   "version": "0.1.0",
   "provider": { "organization": "Energy", "url": "https://github.com/naman10parikh/canary" },
   "endpoint": "stdio://canary-mcp",

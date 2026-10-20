@@ -4,7 +4,8 @@
   "description": "The early warning that's actually actionable — instrument once, page on symptoms, prove the page delivers. Powered by Energy.",
   "type": "module",
   "bin": {
-    "canary": "./dist/cli/index.js"
+    "canary": "./dist/cli/index.js",
+    "canary-mcp": "./dist/mcp/server.js"
   },
   "main": "./dist/cli/index.js",
   "types": "./dist/cli/index.d.ts",
@@ -18,6 +19,7 @@
   ],
   "scripts": {
     "build": "tsc -p tsconfig.json",
+    "prepare": "tsc -p tsconfig.json",
     "dev": "tsc -p tsconfig.json --watch",
     "canary": "node ./dist/cli/index.js",
     "test": "vitest run",

@@ -58,6 +58,17 @@ function renderHttpDocs(): string {
 
 /** Entry point: stdio by default; `--http` prints the documented hosted-mode wiring. */
 async function main(): Promise<void> {
+  if (process.argv.includes("--help") || process.argv.includes("-h")) {
+    process.stdout.write(
+      "canary-mcp: canary's MCP server over stdio (8 tools). Register it in an MCP client; " +
+        "`--http` prints the hosted-mode wiring, `--version` the version.\n",
+    );
+    return;
+  }
+  if (process.argv.includes("--version")) {
+    process.stdout.write(`${SERVER_VERSION}\n`);
+    return;
+  }
   if (process.argv.includes("--http")) {
     process.stdout.write(`${renderHttpDocs()}\n`);
     return;
@@ -68,9 +79,10 @@ async function main(): Promise<void> {
   // stdio mode stays alive on the transport until the client disconnects.
 }
 
-// Run only when invoked directly (so tests can import buildCanaryMcpServer without booting).
+// Run only when invoked directly or through the `canary-mcp` bin (npm links a bin under its own
+// name, so argv[1] ends in "canary-mcp"); tests import buildCanaryMcpServer without booting.
 const invokedPath = process.argv[1] ?? "";
-if (invokedPath.endsWith("server.js") || invokedPath.endsWith("server.ts")) {
+if (invokedPath.endsWith("server.js") || invokedPath.endsWith("server.ts") || invokedPath.endsWith("canary-mcp")) {
   main().catch((err: unknown) => {
     process.stderr.write(
       `${JSON.stringify({ level: "error", msg: "mcp fatal", error: err instanceof Error ? err.message : String(err) })}\n`,

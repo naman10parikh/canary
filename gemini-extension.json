@@ -1,0 +1,17 @@
+{
+  "name": "canary",
+  "version": "0.1.0",
+  "description": "Error and uptime monitoring on OpenTelemetry, with burn-rate alerts and proof the page gets delivered.",
+  "contextFileName": "GEMINI.md",
+  "mcpServers": {
+    "canary": {
+      "command": "npx",
+      "args": [
+        "-y",
+        "-p",
+        "github:naman10parikh/canary",
+        "canary-mcp"
+      ]
+    }
+  }
+}

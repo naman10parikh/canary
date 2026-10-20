@@ -1,0 +1,17 @@
+{
+  "name": "canary",
+  "version": "0.1.0",
+  "description": "Error and uptime monitoring on OpenTelemetry, with burn-rate alerts and proof the page gets delivered.",
+  "author": {
+    "name": "Naman Parikh",
+    "url": "https://github.com/naman10parikh"
+  },
+  "homepage": "https://github.com/naman10parikh/canary",
+  "repository": "https://github.com/naman10parikh/canary",
+  "license": "MIT",
+  "keywords": ["agent-native", "self-improving", "agent-employee", "claude-code", "observability", "opentelemetry", "sre", "slo"],
+  "agents": [
+    "./.claude/agents/observability-auditor.md",
+    "./.claude/agents/alerting-reviewer.md"
+  ]
+}

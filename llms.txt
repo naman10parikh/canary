@@ -1,84 +1,83 @@
 # canary
 
-> The app-health / errors / uptime / observability employee for AI agents —
-> the early warning that's actually actionable: instrument once, page on
-> symptoms, prove the page delivers. Powered by Energy. canary is a
-> domain-expert employee: it owns errors, uptime, latency, release-health, SLO /
-> error-budget burn-rate, structured logs, and on-call with restraint, on an
-> instrument-once OpenTelemetry substrate — and it refuses the footguns that
-> silently corrupt every downstream signal.
+> Error and uptime monitoring on OpenTelemetry, with burn-rate alerts and proof the page gets delivered.
 
-## The one boundary (read this first)
+canary is an agent-native, recursively self-improving agent employee: a coding agent's senior SRE for
+errors, uptime, latency, release health, SLO burn-rate alerting, structured logs and on-call with
+restraint. It instruments once on OpenTelemetry and refuses the footguns that silently corrupt every
+downstream signal. Powered by Energy.
 
-**App health ONLY. LLM token spend is agentmoney's.** canary reads
-`gen_ai.client.operation.duration` / `.exception` / `error.type` off a GenAI
-span and **stops** at `gen_ai.usage.*`. canary and agentmoney read **disjoint
-attribute sets off the SAME OpenTelemetry GenAI span** (shared tag
-`gen_ai.request.model`). canary never holds a cost or token metric.
-(`brain/EXPERTISE-MAP.md` JOB 0.)
+**The one boundary (read this first).** App health only; LLM token spend is agentmoney's. canary reads
+`gen_ai.client.operation.duration` / `.exception` / `error.type` off a GenAI span and stops at
+`gen_ai.usage.*`. canary and agentmoney read disjoint attribute sets off the same OpenTelemetry GenAI
+span (shared tag `gen_ai.request.model`). canary never holds a cost or token metric
+(`brain/EXPERTISE-MAP.md` JOB 0).
 
-## The default stack (locked — `brain/TOOL-MATRIX.md`)
-
-**OpenTelemetry** (instrument-once substrate) · **Sentry** (errors + traces +
-release-health + Seer) · **Prometheus + Grafana** (metrics + SLO / MWMBR
-burn-rate) · **Checkly** (synthetic / uptime, monitoring-as-code) · **pino**
-(structured logs) · **PagerDuty / incident.io** (on-call) · **BetterStack**
-(uptime alt). Defaults are wired; alts are documented, not wired.
+**The default stack** (locked, `brain/TOOL-MATRIX.md`): OpenTelemetry (instrument-once substrate) ·
+Sentry (errors, traces, release health, Seer) · Prometheus + Grafana (metrics, SLO / MWMBR burn-rate) ·
+Checkly (synthetic and uptime, monitoring as code) · pino (structured logs) · PagerDuty / incident.io
+(on-call) · BetterStack (uptime alt). Defaults are wired; alts are documented, not wired.
 
 ## Start here
 
-- [AGENTS.md](./AGENTS.md): how an agent consumes canary (CLI commands, MCP tools, when to call which, what it refuses).
-- [identity/SOUL.md](./identity/SOUL.md): who canary is — the creed ("page on symptoms, delete alerts, test delivery, causality over volume"), what it IS / DOES / REFUSES.
-- [brain/OPINIONS.md](./brain/OPINIONS.md): the stances a consuming agent should adopt (page on symptoms not causes, the senior move is to DELETE an alert, test the delivery path, never average a percentile, never alert on a rate without a volume floor).
+- [AGENTS.md](./AGENTS.md): how an agent consumes canary (CLI commands, MCP tools, when to call which, what it refuses). The one source of instructions.
+- [identity/SOUL.md](./identity/SOUL.md): who canary is: the creed ("page on symptoms, delete alerts, test delivery, causality over volume"), what it is, does and refuses.
+- [README.md](./README.md): what it is, the quick start, and the one-step install for every coding agent.
+- [CLAUDE.md](./CLAUDE.md): Claude Code operating rules (imports AGENTS.md).
+- [brain/OPINIONS.md](./brain/OPINIONS.md): the stances a consuming agent should adopt (page on symptoms not causes, the senior move is to delete an alert, test the delivery path, never average a percentile, never alert on a rate without a volume floor).
 
-## Brain (the expertise — cite these)
+## Skills
 
-- [brain/MOC - canary.md](./brain/MOC%20-%20canary.md): the brain index — the master hub for all six artifacts.
-- [brain/EXPERTISE-MAP.md](./brain/EXPERTISE-MAP.md): the 10 JOBS — start here; JOB 0 = the agentmoney boundary.
-- [brain/BATTLE-TESTED-SCENARIOS.md](./brain/BATTLE-TESTED-SCENARIOS.md): S1–S18 real failure/migration cases (symptom → diagnosis → resolution → verify); each is a golden eval with a binary VERIFY.
-- [brain/KNOWN-PITFALLS.md](./brain/KNOWN-PITFALLS.md): §1–§12 version-specific footguns, each with detection + avoidance.
-- [brain/TOOL-MATRIX.md](./brain/TOOL-MATRIX.md): per-tool default vs alt, the agent-access surface (MCP/CLI/REST), required secrets.
-- [brain/GAPS-AND-DISPUTES.md](./brain/GAPS-AND-DISPUTES.md): live disputes (both sides), what's unconfirmed (say "re-verify").
+- [instrument-with-otel](./skills/instrument-with-otel/SKILL.md): instrument a service once in OpenTelemetry so errors, latency and uptime come from one stream.
+- [slo-burn-rate-alerting](./skills/slo-burn-rate-alerting/SKILL.md): an SLO with multi-window, multi-burn-rate alerting that decides page, ticket or freeze.
+- [test-alert-delivery](./skills/test-alert-delivery/SKILL.md): prove a page can be delivered on every channel, and fail loudly when one is dead (the differentiator).
+- [fix-source-maps](./skills/fix-source-maps/SKILL.md): make minified production stack traces symbolicate with Debug-ID source-map upload in CI.
+- [tame-cardinality-and-percentiles](./skills/tame-cardinality-and-percentiles/SKILL.md): fix unbounded metric labels and averaged percentiles.
 
-## Tools (CLI commands)
+## MCP tools
 
-`instrument` · `slo` · `audit` · `check-delivery` · `cardinality` · `brain` ·
-`explain`. Honest stubs (advertised in `--help`, not yet delivered):
-`release-health` · `uptime` · `eval`. Run `canary --help` for the CLI; exit 0 on
-success, non-zero on error; `--json` on every data command for agent consumption.
+canary's own MCP server ([src/mcp/server.ts](./src/mcp/server.ts), bin `canary-mcp`). Start it with
+`npx -y -p github:naman10parikh/canary canary-mcp`. It is distinct from the consumed query servers
+(`sentry`, `grafana`, `prometheus`) in `.mcp.dev.json`, which use environment references only.
 
-## MCP (canary's OWN server)
+- [instrument_service](./src/mcp/tools/index.ts): wire OpenTelemetry into a target service.
+- [scaffold_slo](./src/mcp/tools/index.ts): write a promtool-valid MWMBR SLO ruleset.
+- [audit_observability](./src/mcp/tools/index.ts): detect the version-specific footguns, keyed by section ID.
+- [check_delivery](./src/mcp/tools/index.ts): fire a synthetic page through each channel and confirm receipt.
+- [release_health](./src/mcp/tools/index.ts): planned (needs Sentry credentials); returns a planned status today.
+- [detect_cardinality](./src/mcp/tools/index.ts): flag unbounded metric labels and emit the Collector strip config.
+- [explain_pitfall](./src/mcp/tools/index.ts): print one scenario, pitfall or opinion by ID.
+- [search_brain](./src/mcp/tools/index.ts): BM25 search over the six brain files.
 
-canary ships its own MCP server (stdio local + a documented Streamable-HTTP path)
-exposing the expertise operations: `instrument_service` · `scaffold_slo` ·
-`audit_observability` · `check_delivery` · `release_health` (planned —
-Sentry-creds-gated) · `detect_cardinality` · `explain_pitfall` · `search_brain`.
-This is **distinct** from the *consumed* obs-query MCPs (`sentry`, `grafana`,
-`prometheus`) that canary uses as query lenses (OPINIONS D1) — those are
-registered in `.mcp.json` with **env refs only**, never live keys. The A2A card
-is at [.well-known/agent.json](./.well-known/agent.json).
+## CLI
 
-## Skills (repo-authored, each cites a brain node)
-
-- instrument-with-otel · slo-burn-rate-alerting · test-alert-delivery (the
-  differentiator) · fix-source-maps · tame-cardinality-and-percentiles
-  (see `skills/<name>/SKILL.md`).
+- [canary](./src/cli/index.ts): `instrument` · `slo` · `audit` · `check-delivery` · `cardinality` · `brain` · `explain` · `eval`. Planned stubs, advertised in `--help`: `release-health` · `uptime`. Run `npx -y -p github:naman10parikh/canary canary --help`; exit 0 on success, non-zero on error; `--json` on every data command.
 
 ## Sub-agents
 
-- `observability-auditor` (audits instrumentation config footguns — source-map
-  Debug IDs §1, `tracesSampleRate` §1b.3, ad-blocker `tunnel` §1b.2, the v9
-  `autoSessionTracking` trap §3.1, unbounded cardinality §5, averaged percentiles
-  §6) ·
-- `alerting-reviewer` (audits the alert/on-call surface — rate-without-floor
-  §2.1, MWMBR correctness S6, `send_resolved` §8.2, `dedup_key` §8.5, dead tools
-  §10.3, the delivery-path gap S5).
+- [observability-auditor](./.claude/agents/observability-auditor.md): audits instrumentation config footguns: source-map Debug IDs §1, `tracesSampleRate` §1b.3, the ad-blocker `tunnel` §1b.2, the v9 `autoSessionTracking` trap §3.1, unbounded cardinality §5, averaged percentiles §6.
+- [alerting-reviewer](./.claude/agents/alerting-reviewer.md): audits the alert and on-call surface: rate without a floor §2.1, MWMBR correctness S6, `send_resolved` §8.2, `dedup_key` §8.5, dead tools §10.3, the delivery-path gap S5.
 
-## The ID index (how to address the expertise)
+## Brain (the expertise, cite these)
 
-- **S-IDs** (`S1`…`S18`) — `brain/BATTLE-TESTED-SCENARIOS.md`: real scenarios. `canary explain S5` = the page that never delivered.
-- **§-IDs** (`§1`…`§12`) — `brain/KNOWN-PITFALLS.md`: version-specific footguns. `canary explain §1b.3` = `tracesSampleRate:1.0` in prod.
-- **A-/B-/C-/D-IDs** (`A1`…`D5`) — `brain/OPINIONS.md`: taste stances. `canary explain A5` = never alert on a rate without a volume floor.
+- [brain/MOC - canary.md](./brain/MOC%20-%20canary.md): the brain index, the hub for all six artifacts.
+- [brain/EXPERTISE-MAP.md](./brain/EXPERTISE-MAP.md): the 10 JOBS; start here; JOB 0 is the agentmoney boundary.
+- [brain/BATTLE-TESTED-SCENARIOS.md](./brain/BATTLE-TESTED-SCENARIOS.md): S1 to S18 real failure and migration cases (symptom, diagnosis, resolution, verify); each is a golden eval with a binary verify.
+- [brain/KNOWN-PITFALLS.md](./brain/KNOWN-PITFALLS.md): §1 to §12 version-specific footguns, each with detection and avoidance.
+- [brain/TOOL-MATRIX.md](./brain/TOOL-MATRIX.md): per-tool default against alt, the agent-access surface (MCP, CLI, REST), required secrets.
+- [brain/GAPS-AND-DISPUTES.md](./brain/GAPS-AND-DISPUTES.md): live disputes (both sides) and what is unconfirmed (say "re-verify").
 
-Query the brain: `canary brain "page never delivered"` →
-`BATTLE-TESTED-SCENARIOS.md S5` + `OPINIONS.md A4`.
+The ID index: **S-IDs** (`S1`…`S18`, `brain/BATTLE-TESTED-SCENARIOS.md`): `canary explain S5` is the page
+that never delivered. **§-IDs** (`§1`…`§12`, `brain/KNOWN-PITFALLS.md`): `canary explain §1b.3` is
+`tracesSampleRate:1.0` in prod. **A-/B-/C-/D-IDs** (`A1`…`D5`, `brain/OPINIONS.md`): `canary explain A5`
+is never alert on a rate without a volume floor. Query the brain: `canary brain "page never delivered"`
+returns `BATTLE-TESTED-SCENARIOS.md S5` and `OPINIONS.md A4`.
+
+## Optional
+
+- [MEMORY.md](./MEMORY.md): the bootstrap memory (at most 2,000 tokens).
+- [memory/LEARNINGS.md](./memory/LEARNINGS.md): corrections turned into rules.
+- [dsip.json](./dsip.json): the self-improvement contract (Darwin DSIP, level L2).
+- [.well-known/agent.json](./.well-known/agent.json): the A2A agent card.
+- [.claude-plugin/plugin.json](./.claude-plugin/plugin.json): the Claude Code plugin.
+- [gemini-extension.json](./gemini-extension.json): the Gemini CLI extension.

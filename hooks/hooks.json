@@ -1,0 +1,16 @@
+{
+  "description": "canary's footgun gate: blocks a git commit that adds an observability footgun (tracesSampleRate 1.0 in prod, a pino logger without redact, an unbounded metric label, a rate alert with no volume floor).",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node \"${CLAUDE_PLUGIN_ROOT}/.claude/hooks/canary-footgun-gate.js\""
+          }
+        ]
+      }
+    ]
+  }
+}

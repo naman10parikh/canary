@@ -42,18 +42,25 @@ monitoring-as-code) · **pino** (structured logs) · **PagerDuty / incident.io**
 | `canary cardinality <dir> [--json]` | Flags unbounded metric labels (`user_id`/`request_id`/`url.path`) → emits the Collector strip config + states where the value belongs (a trace/event). | S8 / B3 / §5 — tame cardinality |
 | `canary brain "<query>"` | BM25-ranked search over the six `brain/` expertise files; returns ranked S-/§-/A- IDs. | the Memory layer |
 | `canary explain <S-id\|§-id\|A-id>` | Prints one scenario / pitfall / opinion by ID with detection + fix + source. | read-only lookup |
+| `canary eval [--level <1\|2\|3>] [--k <n>] [--json]` | Runs the eval pyramid over the golden tasks: L1 structural, L2 behavioral with pass^k (k=3 by default), and lists the L3 trajectory rubrics for review. | the Evals layer |
 
 Honest stubs (advertised in `--help`, not yet delivered — their owning cluster lands them): `canary
-release-health`, `canary uptime`, `canary eval`. **Exit 0 on success, non-zero on error;** `--json` on
+release-health`, `canary uptime`. **Exit 0 on success, non-zero on error;** `--json` on
 every data command for agent consumption.
+
+Run the CLI straight from GitHub with `npx -y -p github:naman10parikh/canary canary --help`, or from a
+clone with `pnpm install && pnpm build && node dist/cli/index.js --help`.
 
 ### MCP (the structured surface — canary's OWN server)
 
 canary ships its own MCP server (stdio local + a documented Streamable-HTTP path) exposing the expertise
 operations: `instrument_service`, `scaffold_slo`, `audit_observability`, `check_delivery`,
-`release_health`, `detect_cardinality`, `explain_pitfall`, `search_brain`. This is **distinct** from the
+`release_health`, `detect_cardinality`, `explain_pitfall`, `search_brain`. Start it with
+`npx -y -p github:naman10parikh/canary canary-mcp` (the root `.mcp.json` does this), or `node
+dist/mcp/server.js` from a built clone. This is **distinct** from the
 *consumed* obs-query MCPs (`sentry`, `grafana`, `prometheus`) that canary uses as query lenses (OPINIONS
-D1) — those are registered in `.mcp.json` with **env refs only**, never live keys.
+D1) — those are registered in `.mcp.dev.json` with **env refs only**, never live keys; load them with
+`claude --mcp-config .mcp.dev.json`.
 
 ### Operating order (OPINIONS D1)
 
@@ -98,7 +105,7 @@ Query: `canary brain "page never delivered"` → `BATTLE-TESTED-SCENARIOS.md S5`
 
 canary reads keys from a gitignored `.env` (see `.env.example` for the surface). The consumed obs-query
 MCPs are registered with **env refs only** (`${SENTRY_AUTH_TOKEN}`, `${GRAFANA_URL}`/`${GRAFANA_API_KEY}`,
-`${PROMETHEUS_URL}`) — **never a literal key in `.mcp.json` or any committed file.** Read-only canary uses
+`${PROMETHEUS_URL}`) — **never a literal key in `.mcp.json`, `.mcp.dev.json` or any committed file.** Read-only canary uses
 `*:read` scopes; the gated mutating path needs `project:write`+`event:write` (TOOL-MATRIX §3).
 
 ## Commit convention

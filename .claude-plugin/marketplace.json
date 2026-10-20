@@ -1,0 +1,14 @@
+{
+  "name": "canary",
+  "owner": {
+    "name": "Naman Parikh",
+    "url": "https://github.com/naman10parikh"
+  },
+  "plugins": [
+    {
+      "name": "canary",
+      "source": "./",
+      "description": "Error and uptime monitoring on OpenTelemetry, with burn-rate alerts and proof the page gets delivered."
+    }
+  ]
+}
